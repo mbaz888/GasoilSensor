@@ -182,37 +182,6 @@ float readBatteryVoltage()
     return batteryVoltage;
 }
 
-// ============================================================
-// WIFI
-// ============================================================
-// bool connectWiFi_NOUSADO()
-// {
-//     Serial.println("Conectando WiFi...");
-//     if (!WiFi.config(local_IP, gateway, subnet)) {
-//         Serial.println("Error configurando IP Estática");
-//     }
-
-//     WiFi.mode(WIFI_STA);
-//     WiFi.begin(ssid, password);
-
-//     unsigned long start = millis();
-
-//     while (WiFi.status() != WL_CONNECTED)
-//     {
-//         if (millis() - start > 15000)
-//         {
-//             Serial.println("Timeout WiFi");
-//             return false;
-//         }
-
-//         delay(100);
-//     }
-
-//     Serial.print("WiFi conectado. IP: ");
-//     Serial.println(WiFi.localIP());
-
-//     return true;
-// }
 
 // ============================================================
 // CONNECT WIFI
@@ -1554,8 +1523,8 @@ bool measureDistance(float& distance_mm)
             distance = sensor.getDistanceMm();
             // Validación básica
             if (
-                distance >= 150.0 &&
-                distance <= 10500.0
+                distance >= 10.0 &&
+                distance <= 10000.0
             )
             {
                 measurements[
