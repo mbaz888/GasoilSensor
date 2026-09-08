@@ -87,7 +87,7 @@ Sensor radar de 24 GHz:
 
 **HLK-LD2413**
 
-El sensor se alimenta únicamente durante el periodo necesario para realizar la medición. Durante Deep Sleep su alimentación se desconecta mediante la etapa de transistores.
+El sensor se alimenta únicamente durante el periodo necesario para realizar la medición. Durante Deep Sleep su alimentación se desconecta. 
 
 ### Alimentación
 
@@ -122,7 +122,7 @@ El proyecto está desarrollado utilizando:
 * PlatformIO
 * Visual Studio Code
 * Arduino Framework
-* ESP32-C3
+
 
 Principales componentes software:
 
@@ -146,24 +146,29 @@ El dispositivo tiene dos modos principales:
 
 ## Primer arranque
 
-Al arrancar por primera vez:
-
-```text
-counter == 0
-```
-
-el dispositivo entra automáticamente en modo configuración.
-
+Al arrancar por primera vez, el dispositivo entra automáticamente en modo configuración.
 En este modo crea un Access Point WiFi:
 
 ```text
 GasoilSensor-XXXX
 PWD: 12345678
 ```
+que proporciona una interfaz web para configurar el dispositivo.
 
-y proporciona una interfaz web para configurar el dispositivo.
+# Parámetros configurables 
 
+Actualmente se pueden configurar:
 
+| Parámetro      | Descripción                                      |
+| -------------- | ------------------------------------------------ |
+| SSID           | Red WiFi a utilizar                              |
+| Password       | Contraseña de la red WiFi                        |
+| Sleep Interval | Intervalo entre mediciones  (minutos)            |
+| Sensor Height  | Altura (cm) del sensor respecto al techo deposito|
+| MQTT broker    | IP/URL Broker MQTT                               |
+| MQTT port      | Port Broker MQTT                                 |
+| MQTT username  | User MQTT                                        |
+| MQTT password  | Password user MQTT                               |
 
 
 # Configuración WiFi
@@ -185,48 +190,11 @@ Red WiFi
 ```
 
 Las redes se muestran junto con su intensidad de señal RSSI.
-
 También es posible introducir manualmente el SSID para redes ocultas.
 
 La contraseña puede visualizarse u ocultarse mediante el botón correspondiente.
 
 ---
-
-# Parámetros configurables
-
-Actualmente se pueden configurar:
-
-| Parámetro      | Descripción                                      |
-| -------------- | ------------------------------------------------ |
-| SSID           | Red WiFi a utilizar                              |
-| Password       | Contraseña de la red WiFi                        |
-| Sleep Interval | Intervalo entre mediciones  (minutos)            |
-| Sensor Height  | Altura (cm) del sensor respecto al techo deposito|
-| MQTT broker    | IP/URL Broker MQTT                               |
-| MQTT port      | Port Broker MQTT                                 |
-| MQTT username  | User MQTT                                        |
-| MQTT password  | Passwrod user MQTT                               |
-
-
-
-# Almacenamiento de configuración
-
-La configuración se almacena en la memoria NVS del ESP32 mediante `Preferences`.
-La configuración permanece almacenada aunque el dispositivo entre en Deep Sleep.
-
----
-
-# Contador de ciclos
-
-El proyecto utiliza:
-
-```cpp
-RTC_DATA_ATTR uint32_t counter = 0;
-```
-
-para mantener un contador entre ciclos de Deep Sleep.
-
-
 
 
 # Timeout de configuración
@@ -313,7 +281,7 @@ Los campos principales son:
 
 | Campo             | Descripción                 |
 | ----------------- | --------------------------- |
-| `gasoil_level`    | Nivel estimado de gasoil    |
+| `gasoil_level`    | Nivel (%) estimado de gasoil|
 | `battery_voltage` | Tensión de la batería       |
 | `count`           | Número de ciclo de medición |
 
@@ -343,7 +311,7 @@ El proyecto contempla además el uso de **MQTT Discovery** para facilitar la cre
 
 # Cálculo del nivel
 
-La altura física aproximada del depósito se utiliza como referencia para calcular el nivel.
+La altura física aproximada del depósito se utiliza como referencia para calcular el nivel porcentual.
 
 Por ejemplo:
 
@@ -372,32 +340,11 @@ Sensor
 
 El depósito no tiene necesariamente una geometría lineal, por lo que la conversión entre distancia medida y cantidad de gasoil es una aproximación.
 
-La lógica de cálculo puede evolucionar posteriormente para incorporar una curva de calibración específica del depósito.
+La lógica de cálculo puede evolucionar posteriormente para incorporar una curva de calibración específica del depósito. O enviar la medida del sensor en mm. para que el calculo no se haga en el "edge".
 
 ---
 
-# Estructura del proyecto
 
-La estructura prevista para PlatformIO es:
-
-```text
-GasoilSensor/
-│
-├── include/
-│
-├── lib/
-│
-├── src/
-│   └── main.cpp
-│
-├── test/
-│
-├── platformio.ini
-├── .gitignore
-└── README.md
-```
-
----
 
 # Compilación
 
@@ -428,58 +375,6 @@ Para abrir el monitor serie:
 ```bash
 pio device monitor
 ```
-
----
-
-# Monitor serie
-
-Durante el funcionamiento el ESP32 proporciona información de diagnóstico mediante el puerto serie.
-
-Por ejemplo:
-
-```text
-======================
-Gasoil Sensor
-======================
-
-Counter: 15
-
-Configuracion cargada desde NVS
-
-Ciclo de funcionamiento: 15
-
-Conectando a WiFi...
-WiFi conectado
-
-IP: 192.168.1.120
-
-Conectando a MQTT...
-MQTT conectado
-
-Publicando datos...
-
-Entrando en Deep Sleep...
-```
-
-Durante el modo configuración se muestran también los parámetros recibidos y el resultado del escaneo WiFi.
-
----
-
-
-
-# Dependencias
-
-Las principales funcionalidades utilizan las librerías proporcionadas por el framework Arduino para ESP32:
-
-```cpp
-#include <WiFi.h>
-#include <WebServer.h>
-#include <DNSServer.h>
-#include <Preferences.h>
-#include <esp_sleep.h>
-```
-
-La comunicación MQTT requiere la librería MQTT utilizada por el proyecto.
 
 ---
 
