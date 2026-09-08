@@ -4,7 +4,7 @@
 #include <Preferences.h>
 #include <WebServer.h>
 #include <DNSServer.h>
-//#include "credentials.h"
+#include "credentials.h"
 
 // Pines de Hardware
 #define SENSOR_POWER_PIN 6 // GPIO para controlar el transistor (PNP)
@@ -118,7 +118,6 @@ const size_t CALIBRATION_POINTS =
 const float BATT_DIVIDER_FACTOR = 2.1; // Factor de corrección para el divisor de tensión (10k/10k)
 
 #define SENSOR
-#define SLEEP
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -1400,18 +1399,18 @@ void startConfigurationMode()
     // HTTP endpoints
     // --------------------------------------------------------
 
-server.on("/", HTTP_GET, []()
-{
-    server.send(
-        200,
-        "text/html",
-        getConfigPage()
-    );
-});
+    server.on("/", HTTP_GET, []()
+    {
+        server.send(
+            200,
+            "text/html",
+            getConfigPage()
+        );
+    });
 
-server.on("/scan", HTTP_GET, handleScan);
+    server.on("/scan", HTTP_GET, handleScan);
 
-server.on("/save", HTTP_POST, handleSave);
+    server.on("/save", HTTP_POST, handleSave);
 
 
     server.onNotFound(
@@ -1763,21 +1762,6 @@ void normalOperation() {
         Serial.println("No new data");
         level = 1;
     }
-/*
-    float distance;
-    if (measureDistance(distance)) {
-        level = distance;
-     } else {
-        Serial.println("Error al medir la distancia");
-        level = 1;     
-    }
-*/
-     // Medir el voltaje de las pilas de forma inmediata
-    // El ADC lee de 0 a 4095 (12 bits). Con atenuación por defecto (~2.5V-3.3V máx).
-
-    //int adcRaw = analogRead(BATT_ADC_PIN);
-    //float vADC = (adcRaw * 3.1) / 4095.0;
-    //float batt_v = vADC * 2.0; // Multiplicamos por 2 debido al divisor de tensión (10k/10k)
 
     float batt_v = readBatteryVoltage();
 
@@ -1806,19 +1790,7 @@ void normalOperation() {
 
         return;
     }
-    // // Encender e iniciar WiFi con IP estática
-    // if (!WiFi.config(local_IP, gateway, subnet)) {
-    //     Serial.println("Error configurando IP Estática");
-    // }
  
-    // WiFi.begin(ssid, password);
-    // int intentos = 0;
-    // while (WiFi.status() != WL_CONNECTED && intentos < 10) { // Timeout de 10 segundos máximo
-    //     delay(500);
-    //     Serial.print(".");  
-    //     intentos++;
-    // }
-    // Serial.println(""); 
 
     // Si logramos conectar, enviamos por MQTT
     if (WiFi.status() == WL_CONNECTED) {
@@ -1867,7 +1839,7 @@ void normalOperation() {
     // --------------------------------------------------------
     // DEEP SLEEP
     // --------------------------------------------------------    
-#ifdef SLEEP
+
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     if (reconnectCounter == 0) {
@@ -1877,7 +1849,7 @@ void normalOperation() {
     }
     Serial.println("Entrando en Deep Sleep...");
     esp_deep_sleep_start();
-#endif
+
     
     
 }
@@ -1885,67 +1857,5 @@ void normalOperation() {
 
 void loop() {
 
-#ifndef SLEEP
-
-    long level,batt_v;
-
-    digitalWrite(SENSOR_POWER_PIN, HIGH); // ENCENDER el sensor (2N3904 se activa con HIGH)
-    delay(100);
-    sensor.update();
-    if (sensor.hasNewData()) {
-        Serial.print("Water Level Dist: ");
-        level = sensor.getDistanceMm();
-        Serial.print(level);
-        Serial.println(" mm.");
-        if (level > 1000) 
-            digitalWrite(LED_PIN, HIGH); // Turn LED OFF
-        else 
-            digitalWrite(LED_PIN, LOW); // Turn LED ON  
-
-    }
-    else {
-        Serial.println("No new data");
-        level = 1;
-    }
-
-
-    // Medir el voltaje de las pilas de forma inmediata
-    float batt_v1 = readBatteryVoltage();
-
-    digitalWrite(SENSOR_POWER_PIN, LOW);
-
-    if (WiFi.status() == WL_CONNECTED) {
-        mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-
-        if (mqttClient.connect("ESP32C3_Gasoil_Sensor",MQTT_USER,MQTT_PASSWORD)) {
-            publishDiscovery();
-
-            delay(100);
-            // Creamos un JSON simple
-            String payload = "{\"gasoil_level\":" + String(level) +
-                         ",\"batt_volt\":" + String(batt_v1) +
-                         ",\"counter\":" + String(counter) + "}";
-                         
-            mqttClient.publish(MQTT_DATA_TOPIC, payload.c_str(),true);
-            delay(100); // Margen para asegurar la salida física del paquete de datos
-            mqttClient.disconnect();
-        } else {
-            Serial.println("No se pudo conectar al broker MQTT.");
-        }   
-    }
-    else {
-        Serial.println("No se pudo conectar a WiFi, no se enviarán datos por MQTT.");
-        WiFi.begin(ssid, password);
-        int intentos = 0;
-        while (WiFi.status() != WL_CONNECTED && intentos < 20) { // Timeout de 10 segundos máximo
-            delay(500);
-            Serial.print(".");  
-            intentos++;
-        }
-        Serial.println(""); 
-    }
-
-    delay(500);
-#endif
 }
 
