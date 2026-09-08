@@ -11,22 +11,24 @@ El dispositivo está diseñado para funcionar con alimentación mediante baterí
 * ESP32-C3 SuperMini.
 * Medición del nivel del depósito mediante sensor radar **HLK-LD2413 24 GHz**.
 * Alimentación mediante 3 pilas de 1,5 V.
+* Alimentación del sensor independiente de la del ESP32.
 * Medición de la tensión de batería mediante divisor resistivo.
 * Desconexión de la alimentación del sensor durante Deep Sleep.
 * Conexión WiFi a una red de 2,4 GHz.
 * Publicación de datos mediante MQTT.
 * Integración con Home Assistant mediante MQTT.
 * Configuración inicial mediante una interfaz web.
-* Modo Access Point para configuración.
-* Escaneo automático de redes WiFi disponibles.
-* Visualización de la intensidad de señal RSSI.
-* Selección de SSID desde la interfaz web.
-* Posibilidad de introducir manualmente redes WiFi ocultas.
-* Visualización/ocultación de la contraseña WiFi.
-* Configuración del intervalo de Deep Sleep.
-* Configuración de la altura del sensor.
+    * Modo Access Point para configuración.
+    * Escaneo automático de redes WiFi disponibles.
+    * Visualización de la intensidad de señal RSSI.
+    * Selección de SSID desde la interfaz web.
+    * Posibilidad de introducir manualmente redes WiFi ocultas.
+    * Visualización/ocultación de la contraseña WiFi.
+    * Configuración del intervalo de Deep Sleep.
+    * Configuración de la altura del sensor.
+    * Configuración parámetros MQTT
 * Almacenamiento persistente de la configuración mediante NVS (`Preferences`).
-* Contador de ciclos almacenado en memoria RTC.
+
 
 ---
 
@@ -35,26 +37,40 @@ El dispositivo está diseñado para funcionar con alimentación mediante baterí
 El funcionamiento general del dispositivo es:
 
 ```text
-                         ┌─────────────────────┐
-                         │      ESP32-C3        │
-                         │                     │
-                         │   GasoilSensor      │
-                         └──────────┬──────────┘
-                                    │
-                 ┌──────────────────┼──────────────────┐
-                 │                  │                  │
-                 ▼                  ▼                  ▼
-          Sensor radar          WiFi 2.4 GHz       Batería
-          HLK-LD2413                │                  │
-                 │                   │                  │
-                 │                   ▼                  │
-                 │              MQTT Broker             │
-                 │              Mosquitto               │
-                 │                   │                  │
-                 │                   ▼                  │
-                 │              Home Assistant          │
-                 │                                      │
-                 └──────────────────────────────────────┘
+
+                 ┌──────────────────────┐
+                 │    ESP32-C3           │
+                 │    SuperMini          │
+                 └──────────┬───────────┘
+                            │
+                ┌───────────┴───────────┐
+                │                       │
+                ▼                       ▼
+       ┌────────────────┐      ┌────────────────┐
+       │ HLK-LD2413     │      │ Battery        │
+       │ Radar 24 GHz   │      │ Voltage        │
+       └────────────────┘      └────────────────┘
+                │                       │
+                └───────────┬───────────┘
+                            │
+                            ▼
+                     ┌─────────────┐
+                     │    WiFi     │
+                     └──────┬──────┘
+                            │
+                            ▼
+                     ┌─────────────┐
+                     │ MQTT Broker │
+                     │  Mosquitto  │
+                     └──────┬──────┘
+                            │
+                            ▼
+                     ┌─────────────┐
+                     │ Home        │
+                     │ Assistant   │
+                     └─────────────┘
+
+
 ```
 
 ---
@@ -85,16 +101,17 @@ Etapa de alimentación
    │
    ├──► ESP32-C3
    │
-   └──► Sensor radar
+   └──► |Switch| ─► |divisor|
+                 ─► Sensor radar
 ```
 
-La alimentación del sensor se desconecta durante Deep Sleep para reducir el consumo.
+La alimentación del sensor se desconecta durante Deep Sleep para reducir el consumo mediante un switch construido con dos transistores (PNP y NPN) que controla el ESP32
 
 ### Medición de batería
 
 La tensión de las baterías se mide mediante un divisor resistivo conectado a una entrada analógica del ESP32.
 
-El divisor se utiliza únicamente durante la fase activa de medición para evitar consumo permanente de las baterías.
+El divisor está conectado después del switch de transistores,para evitar consumo permanente de las baterías a través del divisor.
 
 ---
 
@@ -141,17 +158,13 @@ En este modo crea un Access Point WiFi:
 
 ```text
 GasoilSensor-XXXX
+PWD: 12345678
 ```
 
 y proporciona una interfaz web para configurar el dispositivo.
 
-La página de configuración está disponible en:
 
-```text
-http://192.168.4.1
-```
 
----
 
 # Configuración WiFi
 
@@ -187,40 +200,18 @@ Actualmente se pueden configurar:
 | -------------- | ------------------------------------------------ |
 | SSID           | Red WiFi a utilizar                              |
 | Password       | Contraseña de la red WiFi                        |
-| Sleep Interval | Intervalo entre mediciones                       |
-| Sensor Height  | Altura del sensor respecto al fondo del depósito |
+| Sleep Interval | Intervalo entre mediciones  (minutos)            |
+| Sensor Height  | Altura (cm) del sensor respecto al techo deposito|
+| MQTT broker    | IP/URL Broker MQTT                               |
+| MQTT port      | Port Broker MQTT                                 |
+| MQTT username  | User MQTT                                        |
+| MQTT password  | Passwrod user MQTT                               |
 
-Ejemplo:
 
-```text
-SSID:
-MiCasa_2.4G
-
-Password:
-**************
-
-Sleep interval:
-86400 segundos
-
-Sensor height:
-170 cm
-```
-
----
 
 # Almacenamiento de configuración
 
 La configuración se almacena en la memoria NVS del ESP32 mediante `Preferences`.
-
-Los parámetros almacenados incluyen:
-
-```text
-ssid
-password
-sleep
-height
-```
-
 La configuración permanece almacenada aunque el dispositivo entre en Deep Sleep.
 
 ---
@@ -235,55 +226,12 @@ RTC_DATA_ATTR uint32_t counter = 0;
 
 para mantener un contador entre ciclos de Deep Sleep.
 
-El comportamiento es:
 
-```text
-Primer arranque
-      │
-      ▼
-counter = 0
-      │
-      ▼
-Modo configuración
-      │
-      ▼
-Guardar configuración
-      │
-      ▼
-counter = 1
-      │
-      ▼
-Primera medición
-      │
-      ▼
-Deep Sleep
-      │
-      ▼
-Wake-up
-      │
-      ▼
-counter++
-      │
-      ▼
-Nueva medición
-```
 
-Ejemplo:
-
-```text
-counter = 1  → primera medición
-counter = 2  → segunda medición
-counter = 3  → tercera medición
-...
-```
-
-No se utiliza `ESP.restart()` después de guardar la configuración, ya que el contador almacenado mediante `RTC_DATA_ATTR` está destinado a conservarse durante Deep Sleep.
-
----
 
 # Timeout de configuración
 
-El modo configuración permanece activo durante un tiempo limitado.
+El modo configuración permanece activo durante un tiempo limitado
 
 Actualmente:
 
@@ -355,7 +303,7 @@ Ejemplo:
 
 ```json
 {
-  "gasoil_level": 125,
+  "gasoil_level": 12,
   "battery_voltage": 4.12,
   "count": 15
 }
@@ -400,9 +348,11 @@ La altura física aproximada del depósito se utiliza como referencia para calcu
 Por ejemplo:
 
 ```text
-Altura del sensor = 170 cm
+Altura del sensor = 3 cm
 
 Sensor
+  |← Altura sensor
+---------------  ← Altura deposito
   │
   │
   │  distancia medida
@@ -417,6 +367,7 @@ Sensor
 │    GASOIL     │
 │               │
 └───────────────┘
+---------------
 ```
 
 El depósito no tiene necesariamente una geometría lineal, por lo que la conversión entre distancia medida y cantidad de gasoil es una aproximación.
@@ -599,5 +550,6 @@ Pendiente de definir.
 # Autor
 
 Proyecto **GasoilSensor**
+Autor: Manuel Baz
 
 Desarrollado sobre ESP32-C3 utilizando PlatformIO y Arduino Framework.
