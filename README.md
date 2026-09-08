@@ -523,9 +523,33 @@ El proyecto se encuentra en desarrollo.
 
 ---
 
-# Licencia
+# Uso
 
-Pendiente de definir.
+## Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+DEALINGS IN THE SOFTWARE.
+
+## ⚠️ Safety Warning & Disclaimer
+
+> **CRITICAL SAFETY WARNING:** This project is a purely educational, open-source prototype. It **DOES NOT** hold any official industrial safety certifications (such as ATEX, IECEx, or CE) for operation in explosive atmospheres or hazardous locations. 
+> 
+> Installing uncertified electronic devices near flammable liquids or fuel tanks (such as diesel/gasoil) carries inherent risks of fire, explosion, or property damage, and may violate local electrical and building safety codes.
+
+### Disclaimer of Liability
+
+By replicating, modifying, installing, or using this project, you explicitly agree to the following terms:
+
+1. **As-Is Basis:** All hardware designs, schematics, firmware, and documentation are provided "as is", without warranty of any kind, express or implied, including but not limited to warranties of safety, accuracy, fitness for a particular purpose, or non-infringement.
+2. **Assumption of Risk:** You assume full and exclusive responsibility for the deployment of this device. The author(s) shall not be liable under any circumstances for:
+   * Personal injury, bodily harm, or loss of life.
+   * Direct, indirect, or accidental damage to property, fuel tanks, or surroundings.
+   * Legal penalties, fines, or insurance voids resulting from non-compliance with local laws and safety regulations.
+3. **Compliance:** It is your sole responsibility to ensure that any installation complies with the relevant regulatory frameworks and standards in your jurisdiction. Professional installation and containment are strongly advised.
 
 ---
 
