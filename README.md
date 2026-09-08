@@ -465,25 +465,7 @@ Durante el modo configuración se muestran también los parámetros recibidos y 
 
 ---
 
-# Seguridad
 
-Las credenciales WiFi se almacenan en la memoria NVS del ESP32.
-
-**No deben almacenarse credenciales reales dentro del código fuente ni subirse al repositorio Git.**
-
-Antes de realizar un `git commit`, comprobar que no existen:
-
-```text
-SSID
-Password
-MQTT credentials
-API keys
-Tokens
-```
-
-hardcodeados en los archivos del proyecto.
-
----
 
 # Dependencias
 
