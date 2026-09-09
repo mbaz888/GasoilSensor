@@ -194,25 +194,14 @@ bool connectWiFi()
         Serial.println("Error configurando IP Estática");
     }
 
-    Serial.print(
-        "Conectando a WiFi: "
-    );
-    Serial.println(
-        config.wifiSSID
-    );
+    Serial.print("Conectando a WiFi: ");
+    Serial.println(config.wifiSSID);
 
-    WiFi.mode(
-        WIFI_STA
-    );
+    WiFi.mode(WIFI_STA);
 
-    WiFi.begin(
-        config.wifiSSID.c_str(),
-        config.wifiPassword.c_str()
-    );
+    WiFi.begin(config.wifiSSID.c_str(), config.wifiPassword.c_str());
 
-    unsigned long start =
-        millis();
-
+    unsigned long start = millis();
 
     // Timeout WiFi: 20 segundos
 
@@ -227,22 +216,11 @@ bool connectWiFi()
 
     Serial.println();
 
-    if (
-        WiFi.status() == WL_CONNECTED
-    )
+    if (WiFi.status() == WL_CONNECTED)
     {
-        Serial.println(
-            "WiFi conectado"
-        );
-
-        Serial.print(
-            "IP: "
-        );
-
-        Serial.println(
-            WiFi.localIP()
-        );
-
+        Serial.printf("Conectado a WiFi: %s\n", config.wifiSSID.c_str());
+        Serial.printf("Señal WiFi: %d\n", WiFi.RSSI());
+        Serial.printf("IP: %s\n", WiFi.localIP().toString().c_str());
         return true;
     }
 
@@ -257,40 +235,40 @@ bool connectWiFi()
 // MQTT
 // ============================================================
 
-bool connectMQTT()
-{
-    mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+// bool connectMQTT()
+// {
+//     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
 
-    Serial.println("Conectando MQTT...");
+//     Serial.println("Conectando MQTT...");
 
-    unsigned long start = millis();
+//     unsigned long start = millis();
 
-    while (!mqttClient.connected())
-    {
-        if (millis() - start > 10000)
-        {
-            Serial.println("Timeout MQTT");
-            return false;
-        }
+//     while (!mqttClient.connected())
+//     {
+//         if (millis() - start > 10000)
+//         {
+//             Serial.println("Timeout MQTT");
+//             return false;
+//         }
 
-        String clientId =
-            "gasoil_sensor_" +
-            String((uint32_t)ESP.getEfuseMac(), HEX);
+//         String clientId =
+//             "gasoil_sensor_" +
+//             String((uint32_t)ESP.getEfuseMac(), HEX);
 
-        if (mqttClient.connect(
-                clientId.c_str(),
-                MQTT_USER,
-                MQTT_PASSWORD))
-        {
-            Serial.println("MQTT conectado");
-            return true;
-        }
+//         if (mqttClient.connect(
+//                 clientId.c_str(),
+//                 config.mqttUser.c_str(),
+//                 config.mqttPassword.c_str()))
+//         {
+//             Serial.println("MQTT conectado");
+//             return true;
+//         }
 
-        delay(500);
-    }
+//         delay(500);
+//     }
 
-    return true;
-}
+//     return true;
+// }
 // ============================================================
 // FUNCIONES MQTT DISCOVERY
 // ============================================================
@@ -732,9 +710,9 @@ String getConfigPage()
         <label for="mqtt_password">Contraseña MQTT</label>
 
         <input
-            type="password"
+            type="text"
             name="mqtt_password"
-            value="MQTT_PASSWORD_VALUE"
+            value="MQTT_PWD_VALUE"
             placeholder="Contraseña MQTT"
         >
 
@@ -930,7 +908,7 @@ window.onload = function()
     );
 
     html.replace(
-        "MQTT_PASSWORD_VALUE",
+        "MQTT_PWD_VALUE",
         config.mqttPassword
     );
 
@@ -1212,34 +1190,34 @@ void handleSave()
 
     String response = R"rawliteral(
 
-<!DOCTYPE html>
+        <!DOCTYPE html>
 
-<html>
+        <html>
 
-<head>
+        <head>
 
-<meta charset="UTF-8">
+        <meta charset="UTF-8">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
+        <meta name="viewport"
+            content="width=device-width, initial-scale=1">
 
-<title>Configuración guardada</title>
+        <title>Configuración guardada</title>
 
-</head>
+        </head>
 
-<body>
+        <body>
 
-<h2>Configuración guardada</h2>
+        <h2>Configuración guardada</h2>
 
-<p>
-El dispositivo se reiniciará en unos segundos.
-</p>
+        <p>
+        El dispositivo se reiniciará en unos segundos.
+        </p>
 
-</body>
+        </body>
 
-</html>
+        </html>
 
-)rawliteral";
+        )rawliteral";
 
 
     server.send(
@@ -1290,17 +1268,9 @@ void handleNotFound()
 void startConfigurationMode()
 {
     Serial.println();
-    Serial.println(
-        "======================================"
-    );
-
-    Serial.println(
-        " MODO CONFIGURACION"
-    );
-
-    Serial.println(
-        "======================================"
-    );
+    Serial.println("======================================");
+    Serial.println(" MODO CONFIGURACION");
+    Serial.println("======================================");
 
 
     // --------------------------------------------------------
@@ -1331,26 +1301,15 @@ void startConfigurationMode()
     );
 
 
-    IPAddress apIP =
-        WiFi.softAPIP();
+    IPAddress apIP = WiFi.softAPIP();
 
 
-    Serial.print(
-        "SSID: "
-    );
-
-    Serial.println(
-        apName
-    );
+    Serial.print("SSID: ");
+    Serial.println(apName);
 
 
-    Serial.print(
-        "IP: "
-    );
-
-    Serial.println(
-        apIP
-    );
+    Serial.print("IP: ");
+    Serial.println(apIP);
 
 
     // --------------------------------------------------------
@@ -1381,10 +1340,7 @@ void startConfigurationMode()
 
     server.on("/save", HTTP_POST, handleSave);
 
-
-    server.onNotFound(
-        handleNotFound
-    );
+    server.onNotFound(handleNotFound);
 
 
     server.begin();
@@ -1450,11 +1406,12 @@ void startConfigurationMode()
     }
 }
 
+// ============================================================
+// STOP CONFIGURATION MODE
+// ============================================================
 void stopConfigurationMode()
 {
-    Serial.println(
-        "Deteniendo modo configuracion..."
-    );
+    Serial.println("Deteniendo modo configuracion...");
 
     server.stop();
 
