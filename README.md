@@ -320,7 +320,7 @@ Altura del sensor = 3 cm
 
 Sensor
   |← Altura sensor
----------------  ← Altura deposito
+---------------  ← Altura deposito (100%)
   │
   │
   │  distancia medida
@@ -335,7 +335,7 @@ Sensor
 │    GASOIL     │
 │               │
 └───────────────┘
----------------
+---------------  (0 %)
 ```
 
 El depósito no tiene necesariamente una geometría lineal, por lo que la conversión entre distancia medida y cantidad de gasoil es una aproximación.
